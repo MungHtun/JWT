@@ -27,9 +27,11 @@ namespace JWT.Contexts
 
 			if (userManager.Users.All(u => u.Id != defaultUser.Id))
 			{
-				await userManager.CreateAsync(defaultUser, Authorization.default_password);
-				await userManager.AddToRoleAsync(defaultUser, Authorization.default_role.ToString());
-			}
+				//await userManager.CreateAsync(defaultUser, Authorization.default_password);
+				//await userManager.AddToRoleAsync(defaultUser, Authorization.default_role.ToString());
+                await userManager.CreateAsync(defaultUser, Authorization.default_password);
+                await userManager.AddToRoleAsync(defaultUser, Authorization.default_role.ToString());
+            }
 
         }
 	}
