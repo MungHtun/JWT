@@ -1,7 +1,7 @@
 ﻿using System;
 namespace JWT.Settings
 {
-	public class JWT
+	public class JWT_Data
 	{
 		public string key { get; set; }
 		public string Issuer { get; set; }
