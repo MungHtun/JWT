@@ -18,9 +18,17 @@ namespace JWT.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult> RegistreAsync(RegisterModel registerModel)
+        public async Task<ActionResult> RegisterAsync(RegisterModel registerModel)
         {
             var result = await _userService.RegisterAsync(registerModel);
+            return Ok(result);
+        }
+
+        [HttpPost("token")]
+        public async Task<IActionResult> GetTokenAsync(TokenRequestModel tokenRequestModel)
+        {
+            var result = await _userService.GetTokenAsync(tokenRequestModel);
+
             return Ok(result);
         }
     }

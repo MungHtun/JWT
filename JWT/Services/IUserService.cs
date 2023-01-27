@@ -4,9 +4,10 @@ using JWT.Models;
 
 namespace JWT.Services
 {
-	public interface IUserService
-	{
-		Task<string> RegisterAsync(RegisterModel registerModel);	
-	}
+    public interface IUserService
+    {
+        Task<string> RegisterAsync(RegisterModel registerModel);
+        Task<AuthenticationModel> GetTokenAsync(TokenRequestModel tokenRequestModel);
+    }
 }
 
