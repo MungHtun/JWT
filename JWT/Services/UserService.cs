@@ -107,6 +107,30 @@ namespace JWT.Services
                 signingCredentials: signingCredentials);
             return jwtSecurityToken;
         }
+
+        public async Task<string> AddRoleAsync(AddRoleModel addRoleModel)
+        {
+            var user = await _userManager.FindByEmailAsync(addRoleModel.Email);
+            if (user == null)
+            {
+                return $"-->No Accounts Registered with {addRoleModel.Email}";
+            }
+            if (await _userManager.CheckPasswordAsync(user, addRoleModel.Password))
+            {
+                var roleExists = Enum.GetNames(typeof(Authorization.Roles)).Any(x => x.ToLower() == addRoleModel.Role.ToLower());
+                if (roleExists)
+                {
+                    var validRole = Enum.GetValues(typeof(Authorization.Roles)).Cast<Authorization.Roles>()
+                                  .Where(x => x.ToString().ToLower() == addRoleModel.Role.ToLower()).FirstOrDefault();
+
+                    await _userManager.AddToRoleAsync(user, validRole.ToString());
+                    return $"--> Added {addRoleModel.Role} to user {addRoleModel.Email}";
+                }
+                return $"-->Role {addRoleModel.Role} not found.";
+            }
+            return $"-->Incorrect Creditials for user {user.Email}";
+        }
+
     }
 }
 
