@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace JWT.Models
 {
@@ -12,6 +13,9 @@ namespace JWT.Models
         public List<string> Roles { get; set; }
         public string Token { get; set; }
 
+        [JsonIgnore]
+        public string RefreshToken { get; set; }
+        public DateTime RefreshTokenExpiration { get; set; }
     }
 }
 

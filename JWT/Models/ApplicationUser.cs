@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using JWT.Entities;
 using Microsoft.AspNetCore.Identity;
 
 namespace JWT.Models
@@ -7,6 +9,7 @@ namespace JWT.Models
 	{
 		public string FirstName { get; set; }
 		public string LastName { get; set; }
+		public List<RefreshToken> RefreshTokens { get; set; }
 	}
 }
 
