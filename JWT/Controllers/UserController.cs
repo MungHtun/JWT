@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using JWT.Models;
 using JWT.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace JWT.Controllers
@@ -28,6 +29,7 @@ namespace JWT.Controllers
         public async Task<IActionResult> GetTokenAsync(TokenRequestModel tokenRequestModel)
         {
             var result = await _userService.GetTokenAsync(tokenRequestModel);
+            SetRefreshTokenInCookie(result.RefreshToken);
 
             return Ok(result);
         }
@@ -37,6 +39,16 @@ namespace JWT.Controllers
         {
             var result = await _userService.AddRoleAsync(addRoleModel);
             return Ok(result);
+        }
+
+        private void SetRefreshTokenInCookie(string refreshToken)
+        {
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Expires = DateTime.UtcNow.AddDays(10)
+            };
+            Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
         }
     }
 }

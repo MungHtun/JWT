@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using JWT.Constants;
+using JWT.Entities;
 using JWT.Models;
 using JWT.Settings;
 using Microsoft.AspNetCore.Identity;
@@ -53,6 +55,33 @@ namespace JWT.Services
             }
         }
 
+        #region[first]
+        //public async Task<AuthenticationModel> GetTokenAsync(TokenRequestModel tokenRequestModel)
+        //{
+        //    var authenticationModel = new AuthenticationModel();
+        //    var user = await _userManager.FindByEmailAsync(tokenRequestModel.Email);
+        //    if (user == null)
+        //    {
+        //        authenticationModel.IsAuthenticated = false;
+        //        authenticationModel.Message = $"No Accounts Registered with {tokenRequestModel.Email}.";
+        //        return authenticationModel;
+        //    }
+        //    if (await _userManager.CheckPasswordAsync(user, tokenRequestModel.Password))
+        //    {
+        //        authenticationModel.IsAuthenticated = true;
+        //        JwtSecurityToken jwtSecurityToken = await CreateJwtToken(user);
+        //        authenticationModel.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
+        //        authenticationModel.Email = user.Email;
+        //        authenticationModel.UserName = user.UserName;
+        //        var rolesList = await _userManager.GetRolesAsync(user).ConfigureAwait(false);
+        //        authenticationModel.Roles = rolesList.ToList();
+        //        return authenticationModel;
+        //    }
+        //    authenticationModel.IsAuthenticated = false;
+        //    authenticationModel.Message = $"Incorrect Credentials for user {user.Email}.";
+        //    return authenticationModel;
+        //}
+        #endregion[first]
         public async Task<AuthenticationModel> GetTokenAsync(TokenRequestModel tokenRequestModel)
         {
             var authenticationModel = new AuthenticationModel();
@@ -72,6 +101,25 @@ namespace JWT.Services
                 authenticationModel.UserName = user.UserName;
                 var rolesList = await _userManager.GetRolesAsync(user).ConfigureAwait(false);
                 authenticationModel.Roles = rolesList.ToList();
+
+                if(user.RefreshTokens.Any(a => a.IsActive))
+                {
+                    var activeRefreshToken = user.RefreshTokens.Where(a => a.IsActive == true).FirstOrDefault();
+                    authenticationModel.RefreshToken = activeRefreshToken.Token;
+                    authenticationModel.RefreshTokenExpiration = activeRefreshToken.Expires;
+                }
+                else
+                {
+                    var refreshToken = CreateRefreshToken();
+                    authenticationModel.RefreshToken = refreshToken.Token;
+                    authenticationModel.RefreshTokenExpiration = refreshToken.Expires;
+                    user.RefreshTokens.Add(refreshToken);
+                    _context.Update(user);
+                    _context.SaveChanges();
+                }
+
+
+
                 return authenticationModel;
             }
             authenticationModel.IsAuthenticated = false;
@@ -131,6 +179,24 @@ namespace JWT.Services
             return $"-->Incorrect Creditials for user {user.Email}";
         }
 
+        public Task<AuthenticationModel> RefreshTokenAsync(string jwtToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        private RefreshToken CreateRefreshToken()
+        {
+            var randomNumber = new byte[32];
+            using (var generator = new RNGCryptoServiceProvider())
+            {
+                generator.GetBytes(randomNumber);
+                return new RefreshToken{
+                    Token = Convert.ToBase64String(randomNumber),
+                    Expires = DateTime.UtcNow.AddDays(10),
+                    Created = DateTime.UtcNow
+                };
+            }
+        }
     }
 }
 
