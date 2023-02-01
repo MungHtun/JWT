@@ -236,7 +236,7 @@ namespace JWT.Migrations
                             b1.Property<DateTime>("Created")
                                 .HasColumnType("datetime2");
 
-                            b1.Property<DateTime>("Exprires")
+                            b1.Property<DateTime>("Expires")
                                 .HasColumnType("datetime2");
 
                             b1.Property<DateTime?>("Revoked")

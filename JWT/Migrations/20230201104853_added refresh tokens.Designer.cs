@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace JWT.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20230128145405_added refresh tokens")]
+    [Migration("20230201104853_added refresh tokens")]
     partial class addedrefreshtokens
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -238,7 +238,7 @@ namespace JWT.Migrations
                             b1.Property<DateTime>("Created")
                                 .HasColumnType("datetime2");
 
-                            b1.Property<DateTime>("Exprires")
+                            b1.Property<DateTime>("Expires")
                                 .HasColumnType("datetime2");
 
                             b1.Property<DateTime?>("Revoked")

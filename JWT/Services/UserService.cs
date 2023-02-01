@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using JWT.Constants;
+using JWT.Contexts;
 using JWT.Entities;
 using JWT.Models;
 using JWT.Settings;
@@ -20,12 +21,14 @@ namespace JWT.Services
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly ApplicationDbContext _context;
         private readonly JWT_Data _jwt;
 
-        public UserService(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IOptions<JWT_Data> jwt)
+        public UserService(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IOptions<JWT_Data> jwt, ApplicationDbContext context)
         {
             _userManager = userManager;
             _roleManager = roleManager;
+            _context = context;
             _jwt = jwt.Value;
         }
 
@@ -82,6 +85,7 @@ namespace JWT.Services
         //    return authenticationModel;
         //}
         #endregion[first]
+
         public async Task<AuthenticationModel> GetTokenAsync(TokenRequestModel tokenRequestModel)
         {
             var authenticationModel = new AuthenticationModel();

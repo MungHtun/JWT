@@ -15,7 +15,7 @@ namespace JWT.Migrations
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Token = table.Column<string>(nullable: true),
-                    Exprires = table.Column<DateTime>(nullable: false),
+                    Expires = table.Column<DateTime>(nullable: false),
                     Created = table.Column<DateTime>(nullable: false),
                     Revoked = table.Column<DateTime>(nullable: true)
                 },
