@@ -106,7 +106,7 @@ namespace JWT.Services
                 var rolesList = await _userManager.GetRolesAsync(user).ConfigureAwait(false);
                 authenticationModel.Roles = rolesList.ToList();
 
-                if(user.RefreshTokens.Any(a => a.IsActive))
+                if (user.RefreshTokens.Any(a => a.IsActive))
                 {
                     var activeRefreshToken = user.RefreshTokens.Where(a => a.IsActive == true).FirstOrDefault();
                     authenticationModel.RefreshToken = activeRefreshToken.Token;
@@ -183,24 +183,86 @@ namespace JWT.Services
             return $"-->Incorrect Creditials for user {user.Email}";
         }
 
-        public Task<AuthenticationModel> RefreshTokenAsync(string jwtToken)
-        {
-            throw new NotImplementedException();
-        }
-
         private RefreshToken CreateRefreshToken()
         {
             var randomNumber = new byte[32];
             using (var generator = new RNGCryptoServiceProvider())
             {
                 generator.GetBytes(randomNumber);
-                return new RefreshToken{
+                return new RefreshToken
+                {
                     Token = Convert.ToBase64String(randomNumber),
                     Expires = DateTime.UtcNow.AddDays(10),
                     Created = DateTime.UtcNow
                 };
             }
         }
+
+        public async Task<AuthenticationModel> RefreshTokenAsync(string token)
+        {
+            var authenticationModel = new AuthenticationModel();
+            var user = _context.Users.SingleOrDefault(u => u.RefreshTokens.Any(t => t.Token == token));
+
+            if (user == null)
+            {
+                authenticationModel.IsAuthenticated = false;
+                authenticationModel.Message = $"--> Token didn't match to any users.";
+                return authenticationModel;
+            }
+
+            var refreshToken = user.RefreshTokens.Single(s => s.Token == token);
+
+            if (!refreshToken.IsActive)
+            {
+                authenticationModel.IsAuthenticated = false;
+                authenticationModel.Message = $"--> Token not active.";
+                return authenticationModel;
+            }
+
+            //Revoke current Refresh Token
+            refreshToken.Revoked = DateTime.UtcNow;
+
+            //Generate new Refresh Token and save to db
+            var newRefreshToken = CreateRefreshToken();
+            user.RefreshTokens.Add(newRefreshToken);
+            _context.Update(user);
+            _context.SaveChanges();
+
+            //Generate new JWT
+            authenticationModel.IsAuthenticated = true;
+            JwtSecurityToken jwtSecurityToken = await CreateJwtToken(user);
+            authenticationModel.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
+            authenticationModel.Email = user.Email;
+            authenticationModel.UserName = user.UserName;
+
+            var roleList = await _userManager.GetRolesAsync(user).ConfigureAwait(false);
+            authenticationModel.Roles = roleList.ToList();
+            authenticationModel.RefreshToken = newRefreshToken.Token;
+            authenticationModel.RefreshTokenExpiration = newRefreshToken.Expires;
+
+            return authenticationModel;
+        }
+
+        public ApplicationUser GetById(string id)
+        {
+            return _context.Users.Find(id);
+        }
+
+        public bool RevokeToken(string token)
+        {
+            var user = _context.Users.SingleOrDefault(u => u.RefreshTokens.Any(t => t.Token == token));
+            // return false if no user found with token
+            if (user == null) return false;
+            var refreshToken = user.RefreshTokens.Single(x => x.Token == token);
+            // return false if token is not active
+            if (!refreshToken.IsActive) return false;
+            // revoke token and save
+            refreshToken.Revoked = DateTime.UtcNow;
+            _context.Update(user);
+            _context.SaveChanges();
+            return true;
+        }
+
     }
 }
 
